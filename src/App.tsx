@@ -1,33 +1,54 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useQuery, useMutation, QueryClient } from '@tanstack/react-query'
+import { API_LIST } from './models/api'
 import './App.css'
 
+const queryClient = new QueryClient()
+
 function App() {
-  const [count, setCount] = useState(0)
+  const [text, setText] = useState('');
+
+  const changedText = (e:React.ChangeEvent<HTMLInputElement>):void => {
+    setText(e.target.value);
+  }
+
+  const postJaToEn = async() => {
+    const data = await fetch(API_LIST.JA_TO_EN.url, {
+      method: 'POST',
+      body: JSON.stringify({
+        key: import.meta.env.VITE_API_KEY,
+        name: import.meta.env.VITE_USER_ID,
+        text: 'japan',
+      })
+    })
+    console.log(data)
+    return data;
+  }
+
+
+  const query = useQuery({
+    queryKey:['toEn'],
+    queryFn: () => postJaToEn(),
+  })
+
+  const mutation = useMutation({
+    mutationFn: postJaToEn,
+    onSuccess: () => {
+      // Invalidate and refetch
+      queryClient.invalidateQueries({ queryKey: ['toEn'] })
+    },
+  })
 
   return (
     <>
+      <h1>英語勉強用</h1>
+      <form >
+        <input type="text" onChange={changedText} value={text} />
+        <button type="button" onClick={() => {mutation.mutate}}>翻訳</button>
+      </form>
       <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+        <div></div>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
   )
 }
