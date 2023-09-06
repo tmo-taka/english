@@ -14,9 +14,11 @@ const getClientCredentials = oauth.clientCredentials(
   import.meta.env.VITE_TRANSLATION_API_SECRET_KEY,
 );
 
+const auth = await getClientCredentials();
+
 function App() {
   const [text, setText] = useState('');
-  const [responses, setResponses] = useState<string[]>([])
+  const [responses, setResponses] = useState<string[]>([]);
 
   const changedText = (e:React.ChangeEvent<HTMLInputElement>):void => {
     setText(e.target.value);
@@ -41,7 +43,6 @@ function App() {
   }
 
   const translateToJa = async(text:string):string => {
-    const auth = await getClientCredentials();
     const params = {
         access_token: auth.access_token,
         key: import.meta.env.VITE_TRANSLATION_API_KEY,
@@ -62,7 +63,6 @@ function App() {
 
   const postChat = async() => {
     // await submitChat(text);
-    if(text === ''){return}
     const answer = await translateToJa(text);
     console.log(answer);
     if(answer){
@@ -78,18 +78,18 @@ function App() {
     }
   }
 
-  const query = useQuery({
-    queryKey:['toEn'],
-    queryFn: () => postChat(),
-  })
+  // const query = useQuery({
+  //   queryKey:['toEn'],
+  //   queryFn: () => postChat(),
+  // })
 
-  const mutation = useMutation({
-    mutationFn: postChat,
-    onSuccess: () => {
-      // Invalidate and refetch
-      queryClient.invalidateQueries({ queryKey: ['toEn'] })
-    },
-  })
+  // const mutation = useMutation({
+  //   mutationFn: postChat,
+  //   onSuccess: () => {
+  //     // Invalidate and refetch
+  //     queryClient.invalidateQueries({ queryKey: ['toEn'] })
+  //   },
+  // })
 
   const ChatList = () => {
     const list = responses.map(response => {
@@ -105,7 +105,7 @@ function App() {
       <h1>英語勉強用</h1>
       <form >
         <input type="text" onChange={changedText} value={text} />
-        <button type="button" onClick={() => {postChat}} disabled={stateDisabled()}>送信</button>
+        <button type="button" onClick={() => postChat()} disabled={stateDisabled()}>送信</button>
       </form>
       <div>
         <ChatList />
