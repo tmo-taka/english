@@ -33,13 +33,14 @@ function App() {
       const {data} = res;
       const resMessage = data.bestResponse.utterance;
       setResponses([...responses, resMessage]);
+      // NOTE: 入力文字を初期化
+      setText('');
     } catch(e) {
       console.log('error')
     }
   }
 
-  const postJaToEn = async() => {
-    await submitChat(text);
+  const translateToJa = async(text:string):string => {
     const auth = await getClientCredentials();
     const params = {
         access_token: auth.access_token,
@@ -48,24 +49,42 @@ function App() {
         type: 'json',
         text,
     }
+
     const searchParams = new URLSearchParams();
     for (let key in params) {
       searchParams.append(key, params[key]);
     }
 
-    const res = await axios.post(API_LIST.JA_TO_EN.url, searchParams);
-    const answer = res.data.resultset.result.text;
-    console.log(res.data.resultset.result.text)
+    const res = await axios.post(API_LIST.EN_TO_JA.url, searchParams);
+    const answer:string = res.data.resultset.result.text;
     return answer;
+  }
+
+  const postChat = async() => {
+    // await submitChat(text);
+    if(text === ''){return}
+    const answer = await translateToJa(text);
+    console.log(answer);
+    if(answer){
+      await submitChat(answer);
+    }
+  }
+
+  const stateDisabled = ():boolean => {
+    if(text === ''){
+      return true
+    }else {
+      return false
+    }
   }
 
   const query = useQuery({
     queryKey:['toEn'],
-    queryFn: () => postJaToEn(),
+    queryFn: () => postChat(),
   })
 
   const mutation = useMutation({
-    mutationFn: postJaToEn,
+    mutationFn: postChat,
     onSuccess: () => {
       // Invalidate and refetch
       queryClient.invalidateQueries({ queryKey: ['toEn'] })
@@ -86,7 +105,7 @@ function App() {
       <h1>英語勉強用</h1>
       <form >
         <input type="text" onChange={changedText} value={text} />
-        <button type="button" onClick={() => {mutation.mutate}}>翻訳</button>
+        <button type="button" onClick={() => {postChat}} disabled={stateDisabled()}>送信</button>
       </form>
       <div>
         <ChatList />
