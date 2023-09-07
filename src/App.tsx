@@ -39,6 +39,7 @@ function App() {
       setResponses([...responses, resMessage]);
       // NOTE: 入力文字を初期化
       setText('');
+      return resMessage;
     } catch(e) {
       console.log('error')
     }
@@ -85,13 +86,10 @@ function App() {
   const postChat = async() => {
     // await submitChat(text);
     const answer = await translateToJa(text);
-    console.log(answer);
+    let jaResponse = undefined
     if(answer){
-      await submitChat(answer);
+      jaResponse = await submitChat(answer);
     }
-    await console.log(responses);
-    const jaResponse = await responses.slice(-1)[0];
-    console.log(jaResponse);
     const res_en:string = await translateToEn(jaResponse);
     setEnResponses([...enResponses, res_en]);
   }
