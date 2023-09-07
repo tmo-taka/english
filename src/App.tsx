@@ -3,7 +3,8 @@ import { useQuery, useMutation, QueryClient } from '@tanstack/react-query'
 import { API_LIST } from './models/api'
 import axios from 'axios'
 import oauth from 'axios-oauth-client'
-import { Button, Input, Card, Form, Collapse} from 'antd';
+import { Avatar, Button, Input, Card, Form, Collapse} from 'antd';
+import { UserOutlined } from '@ant-design/icons';
 import './App.css'
 
 const queryClient = new QueryClient();
@@ -116,18 +117,26 @@ function App() {
   // })
 
   const ChatList = () => {
+    const { Meta } = Card;
     const list = responses.map((response,index) => {
       return (
-        <Card title={response} style={{ width: 500 }}>
-          <Form.Item<FieldType>
-            label="英語に訳してみましょう！"
-            name="translateToEnglish"
-          >
-            <Input/>
-            <Button type="primary" htmlType="submit">
-              確認
-            </Button>
-          </Form.Item>
+        <Card style={{ width: 500}}>
+          <Meta
+            avatar={<Avatar style={{ backgroundColor: '#87d068' }} icon={<UserOutlined />} />}
+            title={response}
+            style={{borderBottom: 'solid 1px #CCC', textAlign: 'left', whiteSpace: 'normal', marginBottom: 8}}
+          />
+          <Form layout='vertical'>
+            <Form.Item<FieldType>
+              label="上記を英語に訳してみましょう！"
+              name="translateToEnglish"
+            >
+              <Input/>
+              <Button type="primary" htmlType="submit">
+                確認
+              </Button>
+            </Form.Item>
+          </Form>
           <Collapse
             items={[{ key: index, label: '回答をみる', children: <p>{enResponses[index]}</p> }]}
           />
