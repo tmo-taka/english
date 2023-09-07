@@ -3,7 +3,7 @@ import { useQuery, useMutation, QueryClient } from '@tanstack/react-query'
 import { API_LIST } from './models/api'
 import axios from 'axios'
 import oauth from 'axios-oauth-client'
-import { Button, Input, Card, Form } from 'antd';
+import { Button, Input, Card, Form, Collapse} from 'antd';
 import './App.css'
 
 const queryClient = new QueryClient();
@@ -20,6 +20,7 @@ const auth = await getClientCredentials();
 function App() {
   const [text, setText] = useState('');
   const [responses, setResponses] = useState<string[]>([]);
+  const [enResponses, setEnResponses] = useState<string[]>([]);
 
   const changedText = (e:React.ChangeEvent<HTMLInputElement>):void => {
     setText(e.target.value);
@@ -43,7 +44,7 @@ function App() {
     }
   }
 
-  const translateToJa = async(text:string):string => {
+  const translateToJa = async(text:string):Promise<string> => {
     const params = {
         access_token: auth.access_token,
         key: import.meta.env.VITE_TRANSLATION_API_KEY,
@@ -62,6 +63,25 @@ function App() {
     return answer;
   }
 
+  const translateToEn = async(text:string):Promise<string> => {
+    const params = {
+        access_token: auth.access_token,
+        key: import.meta.env.VITE_TRANSLATION_API_KEY,
+        name: import.meta.env.VITE_TRANSLATION_USER_ID,
+        type: 'json',
+        text,
+    }
+
+    const searchParams = new URLSearchParams();
+    for (let key in params) {
+      searchParams.append(key, params[key]);
+    }
+
+    const res = await axios.post(API_LIST.JA_TO_EN.url, searchParams);
+    const answer:string = res.data.resultset.result.text;
+    return answer;
+  }
+
   const postChat = async() => {
     // await submitChat(text);
     const answer = await translateToJa(text);
@@ -69,6 +89,11 @@ function App() {
     if(answer){
       await submitChat(answer);
     }
+    await console.log(responses);
+    const jaResponse = await responses.slice(-1)[0];
+    console.log(jaResponse);
+    const res_en:string = await translateToEn(jaResponse);
+    setEnResponses([...enResponses, res_en]);
   }
 
   const stateDisabled = ():boolean => {
@@ -93,18 +118,21 @@ function App() {
   // })
 
   const ChatList = () => {
-    const list = responses.map(response => {
+    const list = responses.map((response,index) => {
       return (
         <Card title={response} style={{ width: 500 }}>
           <Form.Item<FieldType>
             label="英語に訳してみましょう！"
-            name="translateToEnglidh"
+            name="translateToEnglish"
           >
             <Input/>
-          <Button type="primary" htmlType="submit">
-            確認
-          </Button>
+            <Button type="primary" htmlType="submit">
+              確認
+            </Button>
           </Form.Item>
+          <Collapse
+            items={[{ key: index, label: '回答をみる', children: <p>{enResponses[index]}</p> }]}
+          />
         </Card>
       );
     });
