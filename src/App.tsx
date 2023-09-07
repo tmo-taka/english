@@ -3,6 +3,7 @@ import { useQuery, useMutation, QueryClient } from '@tanstack/react-query'
 import { API_LIST } from './models/api'
 import axios from 'axios'
 import oauth from 'axios-oauth-client'
+import { Button, Input, Card, Form } from 'antd';
 import './App.css'
 
 const queryClient = new QueryClient();
@@ -94,7 +95,17 @@ function App() {
   const ChatList = () => {
     const list = responses.map(response => {
       return (
-        <li key={response}>{response}</li>
+        <Card title={response} style={{ width: 500 }}>
+          <Form.Item<FieldType>
+            label="英語に訳してみましょう！"
+            name="translateToEnglidh"
+          >
+            <Input/>
+          <Button type="primary" htmlType="submit">
+            確認
+          </Button>
+          </Form.Item>
+        </Card>
       );
     });
     return <ul>{list}</ul>
@@ -103,10 +114,10 @@ function App() {
   return (
     <>
       <h1>英語勉強用</h1>
-      <form >
-        <input type="text" onChange={changedText} value={text} />
-        <button type="button" onClick={() => postChat()} disabled={stateDisabled()}>送信</button>
-      </form>
+      <Form style={{ maxWidth: 600 }}>
+        <Input type="text" onChange={changedText} value={text} />
+        <Button type="primary" onClick={() => postChat()} disabled={stateDisabled()}>送信</Button>
+      </Form>
       <div>
         <ChatList />
       </div>
