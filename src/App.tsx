@@ -3,7 +3,7 @@ import { useQuery, useMutation, QueryClient } from '@tanstack/react-query'
 import { API_LIST } from './models/api'
 import axios from 'axios'
 import oauth from 'axios-oauth-client'
-import { Avatar, Button, Input, Card, Form, Collapse} from 'antd';
+import { Avatar, Button, Input, Card, Form, Collapse, Row, Col} from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 import './App.css'
 
@@ -22,6 +22,7 @@ function App() {
   const [text, setText] = useState('');
   const [responses, setResponses] = useState<string[]>([]);
   const [enResponses, setEnResponses] = useState<string[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const changedText = (e:React.ChangeEvent<HTMLInputElement>):void => {
     setText(e.target.value);
@@ -85,6 +86,7 @@ function App() {
   }
 
   const postChat = async() => {
+    setLoading(true)
     // await submitChat(text);
     const answer = await translateToJa(text);
     let jaResponse = undefined
@@ -93,6 +95,7 @@ function App() {
     }
     const res_en:string = await translateToEn(jaResponse);
     setEnResponses([...enResponses, res_en]);
+    setLoading(false)
   }
 
   const stateDisabled = ():boolean => {
@@ -131,13 +134,20 @@ function App() {
               label="上記を英語に訳してみましょう！"
               name="translateToEnglish"
             >
-              <Input/>
-              <Button type="primary" htmlType="submit">
-                確認
-              </Button>
+              <Row>
+                <Col flex={5}>
+                  <Input />
+                </Col>
+                <Col flex={1}>
+                  <Button type="primary" htmlType="submit">
+                    確認
+                  </Button>
+                </Col>
+              </Row>
             </Form.Item>
           </Form>
           <Collapse
+            style={{ textAlign: 'left'}}
             items={[{ key: index, label: '回答をみる', children: <p>{enResponses[index]}</p> }]}
           />
         </Card>
@@ -150,8 +160,14 @@ function App() {
     <>
       <h1>英語勉強用</h1>
       <Form style={{ maxWidth: 600 }}>
-        <Input type="text" onChange={changedText} value={text} />
-        <Button type="primary" onClick={() => postChat()} disabled={stateDisabled()}>送信</Button>
+        <Row>
+          <Col flex={5}>
+            <Input type="text" onChange={changedText} value={text} />
+          </Col>
+          <Col flex={1}>
+            <Button type="primary" onClick={() => postChat()} disabled={stateDisabled()} loading={loading}>送信</Button>
+          </Col>
+        </Row>
       </Form>
       <div>
         <ChatList />
