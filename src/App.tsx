@@ -110,6 +110,12 @@ function App() {
     }
   }
 
+  const LoadingCard = () => {
+    return (
+      <Card loading={true} />
+    )
+  }
+
   // const query = useQuery({
   //   queryKey:['toEn'],
   //   queryFn: () => postChat(),
@@ -125,43 +131,37 @@ function App() {
 
   const postList = () => {
     const { Meta } = Card;
+    const PostCard = (props: {post:string}) => {
+      const {post} = props
+      if(post !== '') {
+        // NOTE: loading中でない
+        return (
+          <Card >
+            <Meta
+              avatar={<Avatar style={{ backgroundColor: '#F00' }} icon={<UserOutlined />} />}
+              title={post}
+              style={{textAlign: 'left', whiteSpace: 'normal'}}
+            />
+          </Card>
+        )
+      } else {
+        return <LoadingCard />
+      }
+    }
     const lists = posts.map((post,index) => {
-        if(post !== '') {
-            // NOTE: loading中でない
-            return (<Col offset={0} span={20} key={post + index}>
-              <ConfigProvider
-                theme={{
-                  token: {
-                    colorBgContainer: '#87d068'
-                  }
-                }}
-              >
-                <Card >
-                    <Meta
-                      avatar={<Avatar style={{ backgroundColor: '#F00' }} icon={<UserOutlined />} />}
-                      title={post}
-                      style={{textAlign: 'left', whiteSpace: 'normal'}}
-                    />
-                </Card>
-              </ConfigProvider>
-            </Col>
-          )
-        } else {
-          // NOTE: loading中
-          return (
-            <Col offset={0} span={20} key={post + index}>
-              <ConfigProvider
-                theme={{
-                  token: {
-                    colorBgContainer: '#87d068'
-                  }
-                }}
-              >
-                <Card loading={true} />
-              </ConfigProvider>
-            </Col>
-          )
-        }
+        return (
+          <Col offset={0} span={20} key={post + index}>
+            <ConfigProvider
+              theme={{
+                token: {
+                  colorBgContainer: '#87d068'
+                }
+              }}
+            >
+              <PostCard post={post} />
+            </ConfigProvider>
+          </Col>
+        )
     })
     return lists
   }
@@ -169,48 +169,50 @@ function App() {
   const chatList = () => {
     const { Meta } = Card;
     const { TextArea } = Input;
-    const lists = responses.map((response,index) => {
+    const ResponseCard = (props: {response:string, index: number}) => {
+      const {response, index} = props
       if(response !== '') {
         // NOTE: loading中でない
         return (
-          <Col offset={24} span={20} key={response + index}>
-            <Card >
-              <Meta
-                avatar={<Avatar style={{ backgroundColor: '#87d068' }} icon={<UserOutlined />} />}
-                title={response}
-                style={{borderBottom: 'solid 1px #CCC', textAlign: 'left', whiteSpace: 'normal', marginBottom: 8}}
-              />
-              <Form layout='vertical'>
-                <Form.Item<FieldType>
-                  label="上記を英語に訳してみましょう！"
-                  name="translateToEnglish"
-                >
-                  <Row align='bottom'>
-                    <Col flex={5}>
-                      <TextArea />
-                    </Col>
-                    <Col flex={1}>
-                      <Button type="primary" htmlType="submit">
-                        確認
-                      </Button>
-                    </Col>
-                  </Row>
-                </Form.Item>
-              </Form>
-              <Collapse
-                style={{ textAlign: 'left'}}
-                items={[{ key: index, label: '回答をみる', children: <p>{enResponses[index]}</p> }]}
-              />
-            </Card>
-          </Col>
-        );
-      } else {
-        return (
-          <Col offset={24} span={20} key={response + index}>
-            <Card loading={true} />
-          </Col>
+          <Card >
+            <Meta
+              avatar={<Avatar style={{ backgroundColor: '#87d068' }} icon={<UserOutlined />} />}
+              title={response}
+              style={{borderBottom: 'solid 1px #CCC', textAlign: 'left', whiteSpace: 'normal', marginBottom: 8}}
+            />
+            <Form layout='vertical'>
+              <Form.Item<FieldType>
+                label="上記を英語に訳してみましょう！"
+                name="translateToEnglish"
+              >
+                <Row align='bottom'>
+                  <Col flex={5}>
+                    <TextArea />
+                  </Col>
+                  <Col flex={1}>
+                    <Button type="primary" htmlType="submit">
+                      確認
+                    </Button>
+                  </Col>
+                </Row>
+              </Form.Item>
+            </Form>
+            <Collapse
+              style={{ textAlign: 'left'}}
+              items={[{ key: index, label: '回答をみる', children: <p>{enResponses[index]}</p> }]}
+            />
+          </Card>
         )
+      } else {
+        return <LoadingCard />
       }
+    }
+    const lists = responses.map((response,index) => {
+      return (
+        <Col offset={24} span={20} key={response + index}>
+          <ResponseCard response={response} index={index} />
+        </Col>
+      );
     });
     return lists
   };
