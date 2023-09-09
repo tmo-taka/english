@@ -121,11 +121,11 @@ function App() {
   //   },
   // })
 
-  const PostList = () => {
+  const postList = () => {
     const { Meta } = Card;
-    const list = posts.map((post,index) => {
+    const lists = posts.map((post,index) => {
       return (
-        <Col offset={0} span={20} key={index}>
+        <Col offset={0} span={20} key={post + index}>
           <ConfigProvider
             theme={{
               token: {
@@ -144,19 +144,15 @@ function App() {
         </Col>
       )
     })
-    return (
-      <Row gutter={[0, 24]} justify="start">
-        {list}
-      </Row>
-    )
+    return lists
   }
 
-  const ChatList = () => {
+  const chatList = () => {
     const { Meta } = Card;
     const { TextArea } = Input;
-    const list = responses.map((response,index) => {
+    const lists = responses.map((response,index) => {
       return (
-        <Col offset={0} span={20} key={index}>
+        <Col offset={24} span={20} key={response + index}>
           <Card >
             <Meta
               avatar={<Avatar style={{ backgroundColor: '#87d068' }} icon={<UserOutlined />} />}
@@ -188,12 +184,26 @@ function App() {
         </Col>
       );
     });
+    return lists
+  };
+
+  const MergetList = () => {
+    const posts:JSX.Element[] = postList();
+    const chats:JSX.Element[] = chatList();
+    const lastIndex:number = chats.length;
+    const newList:JSX.Element[] = [];
+
+    for (let i = 0; i<lastIndex; i++){
+      newList.push(posts[i]);
+      newList.push(chats[i])
+    }
+
     return (
-      <Row gutter={[0, 24]} justify="end">
-        {list}
+      <Row gutter={[0, 24]}>
+        {newList}
       </Row>
     )
-  };
+  }
 
   return (
     <>
@@ -209,11 +219,9 @@ function App() {
         </Row>
       </Form>
       <Row gutter={8}>
-        <Col className="gutter-row" span={12}>
-          <PostList />
-        </Col>
-        <Col className="gutter-row" span={12}>
-          <ChatList />
+
+        <Col span={12}>
+          <MergetList  />
         </Col>
       </Row>
     </>
