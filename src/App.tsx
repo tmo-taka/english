@@ -31,6 +31,7 @@ function App() {
 
   const submitChat = async(message:string) => {
     try {
+      setResponses([...responses, '']);
       if(message === ''){return}
       const res = await axios.post(API_LIST.CHAT.url, {
         api_key: import.meta.env.VITE_CHAT_API_KEY,
@@ -87,7 +88,8 @@ function App() {
   }
 
   const postChat = async() => {
-    setLoading(true)
+    setLoading(true);
+    setPosts([...posts, '']);
     // await submitChat(text);
     const answer = await translateToJa(text);
     setPosts([...posts, answer]);
@@ -124,25 +126,42 @@ function App() {
   const postList = () => {
     const { Meta } = Card;
     const lists = posts.map((post,index) => {
-      return (
-        <Col offset={0} span={20} key={post + index}>
-          <ConfigProvider
-            theme={{
-              token: {
-                colorBgContainer: '#87d068'
-              }
-            }}
-          >
-            <Card >
-                <Meta
-                  avatar={<Avatar style={{ backgroundColor: '#F00' }} icon={<UserOutlined />} />}
-                  title={post}
-                  style={{textAlign: 'left', whiteSpace: 'normal'}}
-                />
-            </Card>
-          </ConfigProvider>
-        </Col>
-      )
+        if(post !== '') {
+            // NOTE: loading中でない
+            return (<Col offset={0} span={20} key={post + index}>
+              <ConfigProvider
+                theme={{
+                  token: {
+                    colorBgContainer: '#87d068'
+                  }
+                }}
+              >
+                <Card >
+                    <Meta
+                      avatar={<Avatar style={{ backgroundColor: '#F00' }} icon={<UserOutlined />} />}
+                      title={post}
+                      style={{textAlign: 'left', whiteSpace: 'normal'}}
+                    />
+                </Card>
+              </ConfigProvider>
+            </Col>
+          )
+        } else {
+          // NOTE: loading中
+          return (
+            <Col offset={0} span={20} key={post + index}>
+              <ConfigProvider
+                theme={{
+                  token: {
+                    colorBgContainer: '#87d068'
+                  }
+                }}
+              >
+                <Card loading={true} />
+              </ConfigProvider>
+            </Col>
+          )
+        }
     })
     return lists
   }
@@ -151,38 +170,47 @@ function App() {
     const { Meta } = Card;
     const { TextArea } = Input;
     const lists = responses.map((response,index) => {
-      return (
-        <Col offset={24} span={20} key={response + index}>
-          <Card >
-            <Meta
-              avatar={<Avatar style={{ backgroundColor: '#87d068' }} icon={<UserOutlined />} />}
-              title={response}
-              style={{borderBottom: 'solid 1px #CCC', textAlign: 'left', whiteSpace: 'normal', marginBottom: 8}}
-            />
-            <Form layout='vertical'>
-              <Form.Item<FieldType>
-                label="上記を英語に訳してみましょう！"
-                name="translateToEnglish"
-              >
-                <Row align='bottom'>
-                  <Col flex={5}>
-                    <TextArea />
-                  </Col>
-                  <Col flex={1}>
-                    <Button type="primary" htmlType="submit">
-                      確認
-                    </Button>
-                  </Col>
-                </Row>
-              </Form.Item>
-            </Form>
-            <Collapse
-              style={{ textAlign: 'left'}}
-              items={[{ key: index, label: '回答をみる', children: <p>{enResponses[index]}</p> }]}
-            />
-          </Card>
-        </Col>
-      );
+      if(response !== '') {
+        // NOTE: loading中でない
+        return (
+          <Col offset={24} span={20} key={response + index}>
+            <Card >
+              <Meta
+                avatar={<Avatar style={{ backgroundColor: '#87d068' }} icon={<UserOutlined />} />}
+                title={response}
+                style={{borderBottom: 'solid 1px #CCC', textAlign: 'left', whiteSpace: 'normal', marginBottom: 8}}
+              />
+              <Form layout='vertical'>
+                <Form.Item<FieldType>
+                  label="上記を英語に訳してみましょう！"
+                  name="translateToEnglish"
+                >
+                  <Row align='bottom'>
+                    <Col flex={5}>
+                      <TextArea />
+                    </Col>
+                    <Col flex={1}>
+                      <Button type="primary" htmlType="submit">
+                        確認
+                      </Button>
+                    </Col>
+                  </Row>
+                </Form.Item>
+              </Form>
+              <Collapse
+                style={{ textAlign: 'left'}}
+                items={[{ key: index, label: '回答をみる', children: <p>{enResponses[index]}</p> }]}
+              />
+            </Card>
+          </Col>
+        );
+      } else {
+        return (
+          <Col offset={24} span={20} key={response + index}>
+            <Card loading={true} />
+          </Col>
+        )
+      }
     });
     return lists
   };
@@ -190,7 +218,7 @@ function App() {
   const MergetList = () => {
     const posts:JSX.Element[] = postList();
     const chats:JSX.Element[] = chatList();
-    const lastIndex:number = chats.length;
+    const lastIndex:number = chats.length > posts.length ? chats.length : posts.length;
     const newList:JSX.Element[] = [];
 
     for (let i = 0; i<lastIndex; i++){
