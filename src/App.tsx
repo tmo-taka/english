@@ -3,8 +3,10 @@ import { useQuery, useMutation, QueryClient } from '@tanstack/react-query'
 import { API_LIST } from './models/api'
 import axios from 'axios'
 import oauth from 'axios-oauth-client'
-import { Avatar, Button, Input, Card, Form, Collapse, Row, Col, ConfigProvider} from 'antd';
+import { Avatar, Button, Input, Card, Form, Collapse, Row, Col, ConfigProvider, message} from 'antd';
 import { UserOutlined } from '@ant-design/icons';
+import { MessageProvider } from './contexts/messageContext'
+import { InputMessage } from './components/InputMessage'
 import './App.css'
 
 const queryClient = new QueryClient();
@@ -19,15 +21,10 @@ const getClientCredentials = oauth.clientCredentials(
 const auth = await getClientCredentials();
 
 function App() {
-  const [text, setText] = useState('');
   const [responses, setResponses] = useState<string[]>([]);
   const [enResponses, setEnResponses] = useState<string[]>([]);
   const [posts, setPosts] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-
-  const changedText = (e:React.ChangeEvent<HTMLInputElement>):void => {
-    setText(e.target.value);
-  }
 
   const submitChat = async(message:string) => {
     try {
@@ -42,7 +39,7 @@ function App() {
       const resMessage = data.bestResponse.utterance;
       setResponses([...responses, resMessage]);
       // NOTE: 入力文字を初期化
-      setText('');
+      // setText('');
       return resMessage;
     } catch(e) {
       console.log('error')
@@ -64,6 +61,7 @@ function App() {
     }
 
     const res = await axios.post(API_LIST.EN_TO_JA.url, searchParams);
+    // const answer:string = res.data.resultset.result.text;
     const answer:string = res.data.resultset.result.text;
     return answer;
   }
@@ -87,11 +85,11 @@ function App() {
     return answer;
   }
 
-  const postChat = async() => {
+  const postChat = async(message:string) => {
     setLoading(true);
     setPosts([...posts, '']);
     // await submitChat(text);
-    const answer = await translateToJa(text);
+    const answer = await translateToJa(message);
     setPosts([...posts, answer]);
     let jaResponse = undefined
     if(answer){
@@ -100,14 +98,6 @@ function App() {
     const res_en:string = await translateToEn(jaResponse);
     setEnResponses([...enResponses, res_en]);
     setLoading(false)
-  }
-
-  const stateDisabled = ():boolean => {
-    if(text === ''){
-      return true
-    }else {
-      return false
-    }
   }
 
   const LoadingCard = () => {
@@ -238,16 +228,9 @@ function App() {
   return (
     <>
       <h1>英語勉強用</h1>
-      <Form size="large" style={{ width: 800, margin: '0 auto 24px' }}>
-        <Row justify="space-between">
-          <Col span={21}>
-            <Input type="text" onChange={changedText} value={text} />
-          </Col>
-          <Col span={3}>
-            <Button type="primary" onClick={() => postChat()} disabled={stateDisabled()} loading={loading}>送信</Button>
-          </Col>
-        </Row>
-      </Form>
+      <MessageProvider>
+        <InputMessage onPost={(message:string)=>postChat(message)} loading={loading}/>
+      </MessageProvider>
       <Row gutter={8}>
 
         <Col span={12}>
