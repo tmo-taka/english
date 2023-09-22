@@ -1,4 +1,4 @@
-import { FC, useContext } from 'react';
+import { FC, useContext, useEffect } from 'react';
 import { Button, Input, Form, Row, Col } from 'antd';
 import { messageContext } from '../contexts/messageContext'
 
@@ -18,6 +18,11 @@ export const InputMessage: FC<InputMessage> = (props) => {
     const stateDisabled = ():boolean => {
         return (message === '') ? true: false;
     }
+
+    useEffect(() => {
+        // messageの初期化
+        if(loading) { setMessage(''); }
+    },[loading])
 
     return (
         <Form size="large" style={{ width: 800, margin: '0 auto 24px' }}>

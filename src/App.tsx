@@ -207,7 +207,7 @@ function App() {
     return lists
   };
 
-  const MergetList = () => {
+  const MergeList = () => {
     const posts:JSX.Element[] = postList();
     const chats:JSX.Element[] = chatList();
     const lastIndex:number = chats.length > posts.length ? chats.length : posts.length;
@@ -232,9 +232,8 @@ function App() {
         <InputMessage onPost={(message:string)=>postChat(message)} loading={loading}/>
       </MessageProvider>
       <Row gutter={8}>
-
         <Col span={12}>
-          <MergetList  />
+          <MergeList  />
         </Col>
       </Row>
     </>
