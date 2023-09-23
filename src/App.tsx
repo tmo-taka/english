@@ -1,12 +1,15 @@
-import { useState } from 'react'
+import { useState, useContext } from 'react'
 import { useQuery, useMutation, QueryClient } from '@tanstack/react-query'
 import { API_LIST } from './models/api'
 import axios from 'axios'
 import oauth from 'axios-oauth-client'
-import { Avatar, Button, Input, Card, Form, Collapse, Row, Col, ConfigProvider, message} from 'antd';
+import { Avatar, Button, Input, Card, Form, Collapse, Row, Col, ConfigProvider} from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 import { MessageProvider } from './contexts/messageContext'
+import { postContext } from './contexts/postContext'
 import { InputMessage } from './components/InputMessage'
+import { LoadingCard } from './components/LoadingCard';
+import { PostLists } from './components/PostLists'
 import './App.css'
 
 const queryClient = new QueryClient();
@@ -23,7 +26,7 @@ const auth = await getClientCredentials();
 function App() {
   const [responses, setResponses] = useState<string[]>([]);
   const [enResponses, setEnResponses] = useState<string[]>([]);
-  const [posts, setPosts] = useState<string[]>([]);
+  const {posts, setPosts} = useContext(postContext);
   const [loading, setLoading] = useState<boolean>(false);
 
   const submitChat = async(message:string) => {
@@ -90,7 +93,7 @@ function App() {
     setPosts([...posts, '']);
     // await submitChat(text);
     const answer = await translateToJa(message);
-    setPosts([...posts, answer]);
+    setPosts([...posts, answer]); 
     let jaResponse = undefined
     if(answer){
       jaResponse = await submitChat(answer);
@@ -98,12 +101,6 @@ function App() {
     const res_en:string = await translateToEn(jaResponse);
     setEnResponses([...enResponses, res_en]);
     setLoading(false)
-  }
-
-  const LoadingCard = () => {
-    return (
-      <Card loading={true} />
-    )
   }
 
   // const query = useQuery({
@@ -119,42 +116,42 @@ function App() {
   //   },
   // })
 
-  const postList = () => {
-    const { Meta } = Card;
-    const PostCard = (props: {post:string}) => {
-      const {post} = props
-      if(post !== '') {
-        // NOTE: loading中でない
-        return (
-          <Card >
-            <Meta
-              avatar={<Avatar style={{ backgroundColor: '#F00' }} icon={<UserOutlined />} />}
-              title={post}
-              style={{textAlign: 'left', whiteSpace: 'normal'}}
-            />
-          </Card>
-        )
-      } else {
-        return <LoadingCard />
-      }
-    }
-    const lists = posts.map((post,index) => {
-        return (
-          <Col offset={0} span={20} key={post + index}>
-            <ConfigProvider
-              theme={{
-                token: {
-                  colorBgContainer: '#87d068'
-                }
-              }}
-            >
-              <PostCard post={post} />
-            </ConfigProvider>
-          </Col>
-        )
-    })
-    return lists
-  }
+  // const postList = () => {
+  //   const { Meta } = Card;
+  //   const PostCard = (props: {post:string}) => {
+  //     const {post} = props
+  //     if(post !== '') {
+  //       // NOTE: loading中でない
+  //       return (
+  //         <Card >
+  //           <Meta
+  //             avatar={<Avatar style={{ backgroundColor: '#F00' }} icon={<UserOutlined />} />}
+  //             title={post}
+  //             style={{textAlign: 'left', whiteSpace: 'normal'}}
+  //           />
+  //         </Card>
+  //       )
+  //     } else {
+  //       return <LoadingCard />
+  //     }
+  //   }
+  //   const lists = posts.map((post,index) => {
+  //       return (
+  //         <Col offset={0} span={20} key={post + index}>
+  //           <ConfigProvider
+  //             theme={{
+  //               token: {
+  //                 colorBgContainer: '#87d068'
+  //               }
+  //             }}
+  //           >
+  //             <PostCard post={post} />
+  //           </ConfigProvider>
+  //         </Col>
+  //       )
+  //   })
+  //   return lists
+  // }
 
   const chatList = () => {
     const { Meta } = Card;
@@ -208,7 +205,8 @@ function App() {
   };
 
   const MergeList = () => {
-    const posts:JSX.Element[] = postList();
+    const posts:JSX.Element[] = PostLists();
+    console.log(posts)
     const chats:JSX.Element[] = chatList();
     const lastIndex:number = chats.length > posts.length ? chats.length : posts.length;
     const newList:JSX.Element[] = [];
