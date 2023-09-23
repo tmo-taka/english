@@ -26,7 +26,6 @@ const PostCard = (props: {post:string}) => {
 
 export const PostLists = () => {
     const {posts} = useContext(postContext);
-    console.log(posts);
     const postLists = posts.map((post,index) => {
         return (
             <Col offset={0} span={20} key={post + index}>

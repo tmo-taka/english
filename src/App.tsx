@@ -3,13 +3,14 @@ import { useQuery, useMutation, QueryClient } from '@tanstack/react-query'
 import { API_LIST } from './models/api'
 import axios from 'axios'
 import oauth from 'axios-oauth-client'
-import { Avatar, Button, Input, Card, Form, Collapse, Row, Col, ConfigProvider} from 'antd';
-import { UserOutlined } from '@ant-design/icons';
+import { Row, Col } from 'antd';
 import { MessageProvider } from './contexts/messageContext'
 import { postContext } from './contexts/postContext'
+import { chatContext } from './contexts/chatContext'
+import { enChatContext } from './contexts/enChatContext'
 import { InputMessage } from './components/InputMessage'
-import { LoadingCard } from './components/LoadingCard';
 import { PostLists } from './components/PostLists'
+import { ChatLists } from './components/ChatLists'
 import './App.css'
 
 const queryClient = new QueryClient();
@@ -24,14 +25,14 @@ const getClientCredentials = oauth.clientCredentials(
 const auth = await getClientCredentials();
 
 function App() {
-  const [responses, setResponses] = useState<string[]>([]);
-  const [enResponses, setEnResponses] = useState<string[]>([]);
+  const {chats, setChats} = useContext(chatContext);
+  const {enChats, setEnChats} = useContext(enChatContext);
   const {posts, setPosts} = useContext(postContext);
   const [loading, setLoading] = useState<boolean>(false);
 
   const submitChat = async(message:string) => {
     try {
-      setResponses([...responses, '']);
+      setChats([...chats, '']);
       if(message === ''){return}
       const res = await axios.post(API_LIST.CHAT.url, {
         api_key: import.meta.env.VITE_CHAT_API_KEY,
@@ -40,7 +41,7 @@ function App() {
       });
       const {data} = res;
       const resMessage = data.bestResponse.utterance;
-      setResponses([...responses, resMessage]);
+      setChats([...chats, resMessage]);
       // NOTE: 入力文字を初期化
       // setText('');
       return resMessage;
@@ -99,115 +100,14 @@ function App() {
       jaResponse = await submitChat(answer);
     }
     const res_en:string = await translateToEn(jaResponse);
-    setEnResponses([...enResponses, res_en]);
+    setEnChats([...enChats, res_en]);
     setLoading(false)
   }
 
-  // const query = useQuery({
-  //   queryKey:['toEn'],
-  //   queryFn: () => postChat(),
-  // })
-
-  // const mutation = useMutation({
-  //   mutationFn: postChat,
-  //   onSuccess: () => {
-  //     // Invalidate and refetch
-  //     queryClient.invalidateQueries({ queryKey: ['toEn'] })
-  //   },
-  // })
-
-  // const postList = () => {
-  //   const { Meta } = Card;
-  //   const PostCard = (props: {post:string}) => {
-  //     const {post} = props
-  //     if(post !== '') {
-  //       // NOTE: loading中でない
-  //       return (
-  //         <Card >
-  //           <Meta
-  //             avatar={<Avatar style={{ backgroundColor: '#F00' }} icon={<UserOutlined />} />}
-  //             title={post}
-  //             style={{textAlign: 'left', whiteSpace: 'normal'}}
-  //           />
-  //         </Card>
-  //       )
-  //     } else {
-  //       return <LoadingCard />
-  //     }
-  //   }
-  //   const lists = posts.map((post,index) => {
-  //       return (
-  //         <Col offset={0} span={20} key={post + index}>
-  //           <ConfigProvider
-  //             theme={{
-  //               token: {
-  //                 colorBgContainer: '#87d068'
-  //               }
-  //             }}
-  //           >
-  //             <PostCard post={post} />
-  //           </ConfigProvider>
-  //         </Col>
-  //       )
-  //   })
-  //   return lists
-  // }
-
-  const chatList = () => {
-    const { Meta } = Card;
-    const { TextArea } = Input;
-    const ResponseCard = (props: {response:string, index: number}) => {
-      const {response, index} = props
-      if(response !== '') {
-        // NOTE: loading中でない
-        return (
-          <Card >
-            <Meta
-              avatar={<Avatar style={{ backgroundColor: '#87d068' }} icon={<UserOutlined />} />}
-              title={response}
-              style={{borderBottom: 'solid 1px #CCC', textAlign: 'left', whiteSpace: 'normal', marginBottom: 8}}
-            />
-            <Form layout='vertical'>
-              <Form.Item<FieldType>
-                label="上記を英語に訳してみましょう！"
-                name="translateToEnglish"
-              >
-                <Row align='bottom'>
-                  <Col flex={5}>
-                    <TextArea />
-                  </Col>
-                  <Col flex={1}>
-                    <Button type="primary" htmlType="submit">
-                      確認
-                    </Button>
-                  </Col>
-                </Row>
-              </Form.Item>
-            </Form>
-            <Collapse
-              style={{ textAlign: 'left'}}
-              items={[{ key: index, label: '回答をみる', children: <p>{enResponses[index]}</p> }]}
-            />
-          </Card>
-        )
-      } else {
-        return <LoadingCard />
-      }
-    }
-    const lists = responses.map((response,index) => {
-      return (
-        <Col offset={24} span={20} key={response + index}>
-          <ResponseCard response={response} index={index} />
-        </Col>
-      );
-    });
-    return lists
-  };
 
   const MergeList = () => {
     const posts:JSX.Element[] = PostLists();
-    console.log(posts)
-    const chats:JSX.Element[] = chatList();
+    const chats:JSX.Element[] = ChatLists();
     const lastIndex:number = chats.length > posts.length ? chats.length : posts.length;
     const newList:JSX.Element[] = [];
 
